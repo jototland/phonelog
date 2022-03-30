@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="/static/base.css" rel="stylesheet">
+    {% block head %}
+    {% endblock head %}
+  </head>
+  {% macro menuitem(name, view) %}
+    <li>
+      <a class="dropdown-item
+      {%- if request.path == url_for(view) %}
+        active
+      {% endif -%}" href="{{ url_for(view) }}">
+        <span data-i18n>{{ name }}</span>
+      </a>
+    </li>
+  {% endmacro %}
+  <body style="padding-top: 60px;"><!-- navbar is 60px fixed at top -->
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/"><img src="/static/favicon-32x32.png"></a>
+        <a class="navbar-brand" href="/" data-i18n>Phone log</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n>
+                Menu
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                {% if current_user.is_authenticated %}
+                  {% if 'agent' in current_user.roles %}
+                    {{ menuitem('Live', 'main.live_view') }}
+                    {{ menuitem('History', 'main.history_view') }}
+                    {% if 'admin' in current_user.roles %}
+                      <div class="dropdown-divider"></div>
+                    {% endif %}
+                  {% endif %}
+                  {% if 'admin' in current_user.roles %}
+                    {{ menuitem('Customer data', 'main.view_customer_data') }}
+                    {{ menuitem('Contacts', 'main.view_contacts') }}
+                      <div class="dropdown-divider"></div>
+                    {{ menuitem('Users', 'auth.view_users') }}
+                    {{ menuitem('New user', 'auth.add_user') }}
+                  {% endif %}
+                    <div class="dropdown-divider"></div>
+                  <li><a class="dropdown-item" href="https://zisson-kva.statuspage.io/" target="_blank">Zisson status</a></li>
+                {% else %}
+                  {{ menuitem('Log in', 'auth.login') }}
+                {% endif %}
+              </ul>
+            </li>
+            {% block navbarbuttons %}
+            {% endblock navbarbuttons %}
+          </ul>
+          <ul class="navbar-nav ms-auto">
+            {% if current_user.is_authenticated %}
+              <div class="btn-group " role="group">
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="user_info" role="button" data-bs-toggle="dropdown" aria-expanded="false"> {{ current_user.username }} </a>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user_info">
+                    {{ menuitem('Change password', 'auth.change_password') }}
+                    <div class="dropdown-divider"></div>
+                    {{ menuitem('Logout', 'auth.logout') }}
+                  </ul>
+                </li>
+              </div>
+            {% else %}
+              <li class="nav-item"> <a href="{{ url_for('auth.login') }}"> Log in </a> </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            {% if category == 'message' %}
+              <div class="alert alert-warning" role="alert">
+            {% else %}
+              <div class="alert alert-{{ category }}" role="alert">
+            {% endif %}
+            {{ message }}
+              </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block header %}
+      {% endblock header %}
+    </div>
+
+  <div class="{% if container_classes is defined %}{{ container_classes }}{% else %}container{% endif %}">
+    {% block content %}
+    {% endblock content %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.2/umd/popper.min.js" integrity="sha512-aDciVjp+txtxTJWsp8aRwttA0vR2sJMk/73ZT7ExuEHv7I5E6iyyobpFOlEFkq59mWW8ToYGuVZFnwhwIUisKA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="/static/base.js"></script>
+    {% block body_end %}
+    {% endblock body_end %}
+  </body>
+</html>
+

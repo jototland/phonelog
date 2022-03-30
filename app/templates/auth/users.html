@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+  /users
+{% endblock title %}
+
+
+{% block head %}
+{% endblock head %}
+
+
+{% block content %}
+<h1>Existing users</h1>
+<table class="table table-responsive-sm table-bordered table-hover">
+  <thead>
+    <th>User name</th><th>Roles</th><th>Delete</th>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.username }}</td>
+      <td>{{ user.roles }}</td>
+      <td>
+        <form action="{{url_for('auth.del_user')}}" method="post">
+          {{ form.csrf_token() }}
+          {{ form.username(value=user.username) }}
+          <input type="submit"
+                 class="button"
+                 value="Delete!"
+                 onclick="return confirm('Are you sure you want to delete «{{ user.username }}»?')">
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<a href="{{ url_for('auth.add_user') }}">Add or modify a user</a>
+{% endblock content %}

@@ -1,0 +1,14 @@
+{% extends "err_base.html" %}
+
+{% block errmsg %}
+This page is not found.<br>
+Possibly keeping company with some of my favourite socks,<br>
+the keys I lost in 6th grade,<br>
+and Jimmy Hoffa.<br>
+<br>
+<a href="{{ url_for('main.rickroll') }}">Go back</a>
+{% endblock errmsg %}
+
+{% block errpic %}
+  <img src='/static/lost-signal.jpg' class="col-lg-6 col-sm-12">
+{% endblock %}

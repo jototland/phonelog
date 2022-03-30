@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+Change Password for user '{{ current_user.get_id() }}'
+{% endblock title %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Change Password for user '{{ current_user.username }}'</h1>
+  </div>
+  <form method="POST" action="{{ url_for('auth.change_password') }}">
+    {{ form.hidden_tag() }}
+    <div class="form_group">
+      {{ form.old_password.label(class_="form_check_label") }}
+      {{ form.old_password(class_="form-control", autofocus=True) }}
+    </div>
+    <div class="form_group">
+      {{ form.new_password_1.label(class_="form_check_label") }}
+      {{ form.new_password_1(class_="form-control") }}
+    </div>
+    <div class="form_group">
+      {{ form.new_password_2.label(class_="form_check_label") }}
+      {{ form.new_password_2(class_="form-control") }}
+    </div>
+  <input type="submit" class="btn btn-primary" value="Change my password!">
+  </form>
+
+{% endblock content %}

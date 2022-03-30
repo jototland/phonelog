@@ -1,0 +1,6 @@
+{% from "macros.html" import render_call_session %}
+
+
+{% for call_session in call_sessions %}
+  {{ render_call_session(call_session) }}
+{% endfor %}

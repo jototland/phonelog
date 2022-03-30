@@ -1,0 +1,8 @@
+.fixed-width-date {
+  display: inline-block;
+  width: 10ch;
+}
+.fixed-width-time {
+  display: inline-block;
+  width: 11ch;
+}

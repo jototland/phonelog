@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_call_session, local_datetime, iso_datetime, iso_date %}
+{% block content %}
+    <h1>
+      Call session id: {{ call_session_id }}
+    </h1>
+    {{ render_call_session(call_session) }}
+{% endblock content %}

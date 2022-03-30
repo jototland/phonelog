@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Error
+{% endblock title %}
+
+
+{% block head %}
+  <link rel="stylesheet" href="/static/morphtext.css">
+{% endblock head %}
+
+{% block content %}
+  <div class="container mt-5">
+
+    <noscript>
+      <h1 class='noscript' id="errmsg">{{ header }}</h1>
+    </noscript>
+
+    <!-- text effect stolen from: https://codepen.io/alvarotrigo/pen/eYEqPZa -->
+    <div class="container" id="morphtext">
+      <span id="text1" data-text="{{ header }}"></span>
+      <span id="text2"></span>
+    </div>
+    <svg id="filters">
+      <defs><filter id="threshold">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 255 -140" />
+      </filter></defs>
+    </svg>
+
+    <section class="content">
+      <div class="row">
+        <div class="col-lg-6 col-sm-12">
+          {% block errmsg %}
+          {% endblock errmsg %}
+          <br>
+        </div>
+          {% block errpic %}
+          {% endblock errpic %}
+        </div>
+      {% if traceback is defined %}
+        <pre>
+{{ traceback }}
+        </pre>
+      {% endif %}
+    </section>
+
+  </div>
+
+  <script src="/static/morphtext.js">
+  </script>
+{% endblock content %}

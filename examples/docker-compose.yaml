@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  phonelog:
+    image: jototland/phonelog
+    volumes:
+      - "phonelog_data:/app/instance"
+    expose:
+      - "5000"
+    env_file:
+      - secrets.txt # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+  caddy:
+    image: caddy:2-alpine
+    volumes:
+      - "./Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "caddy_data:/data"
+      - "caddy_config:/config"
+    expose:
+      - "80"
+      - "443"
+    ports:
+      - "80:80"
+      - "443:443"
+volumes:
+  phonelog_data:
+  caddy_data:
+  caddy_config:

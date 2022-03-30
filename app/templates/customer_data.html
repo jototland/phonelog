@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+
+{% block navbarbuttons %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+<form action="" method="POST">
+  {{ form.hidden_tag() }}
+  <h1>
+    <span>Customer Data imported from Zisson</span>
+    <button class="btn btn-primary pull-right">Update</button>
+  </h1>
+</form>
+</div>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents" type="button" role="tab" aria-controls="agents" aria-selected="true">Agents</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="internal-phones-tab" data-bs-toggle="tab" data-bs-target="#internal-phones" type="button" role="tab" aria-controls="internal-phones" aria-selected="false">Internal Phones</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="service-numbers-tab" data-bs-toggle="tab" data-bs-target="#service-numbers" type="button" role="tab" aria-controls="service-numbers" aria-selected="false">Service Numbers</button>
+  </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="agents" role="tabpanel" aria-labelledby="agents-tab">
+    <h2>Agents</h2>
+    <pre>{{ agents }}</pre>
+  </div>
+  <div class="tab-pane fade" id="internal-phones" role="tabpanel" aria-labelledby="internal-phones-tab">
+    <h2>Internal phones</h2>
+    <pre>{{ internal_phones }}</pre>
+  </div>
+  <div class="tab-pane fade" id="service-numbers" role="tabpanel" aria-labelledby="service-numbers-tab">
+  <h2>Service numbers</h2>
+  <pre>{{ service_numbers }}</pre>
+  </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<link rel="stylesheet" href="/static/live_view.css">
+{% endblock %}
+
+
+{% block header %}
+  <div id="connection_warning" class="bg-warning"></div>
+{% endblock header %}
+
+
+{% block navbarbuttons %}
+  <li class="nav-item">
+    <label id="connection_info"
+           class="nav-link mx-2"
+           data-tooltip-container-body data-bs-placement="bottom"
+                                       title="no info yet" data-i18n>
+      Not connected
+    </label>
+  </li>
+  <li class="nav-link">
+    <form class="d-flex">
+      <input class="form-check-input" type="checkbox" value="" id="show_blocked_checkbox">
+      <label class="form-check-label text-light mx-2" for="show_details_checkbox" data-i18n>Show blocked numbers</label>
+    </form>
+  </li>
+{% endblock navbarbuttons %}
+
+
+{% block content %}
+<noscript>
+  This page requires javascript.
+</noscript>
+
+<div class="my-3">&nbsp;</div>
+
+<div id="viewport-overlay">
+  <div data-i18n>
+    Disconnected
+  </div>
+</div>
+
+<section id="active_content">
+</section>
+{% endblock content %}
+
+
+{% block body_end %}
+<script>const csrf_token = "{{ csrf_token() }}"</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js" integrity="sha512-MgkNs0gNdrnOM7k+0L+wgiRc5aLgl74sJQKbIWegVIMvVGPc1+gc1L2oK9Wf/D9pq58eqIJAxOonYPVE5UwUFA==" crossorigin="anonymous" referrerpolicy="no-referrer"> </script>
+<script src="/static/live_view.js">
+</script>
+{% endblock body_end %}

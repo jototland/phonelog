@@ -1,0 +1,21 @@
+{
+    ".projections.json": {"type": "proj"},
+    "app/*.py": {
+        "alternate": "tests/test_{}.py",
+        "type": "source"
+    },
+    "tests/test_*.py": {
+        "alternate": "app/{}.py",
+        "type": "test"
+    },
+    "app/templates/*.html": {
+        "type": "template"
+    },
+    "app/static/*.js": {
+        "type": "js"
+    },
+    "app/static/*.css": {
+        "type": "css"
+    }
+}
+

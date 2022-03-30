@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_call_session, local_datetime, iso_datetime, iso_date %}
+{% block content %}
+  <div class="my-5">
+    <h1>
+      {{ local_datetime(from_epoch) }}
+      <b>&mdash;</b>
+      {{ local_datetime(to_epoch) }}
+    </h1>
+    <input class="my-3"
+           type="date"
+           id="start_date"
+           name="start_date"
+           data-from="{{ from_epoch }}"
+           min="{{ lowest_date }}"
+           max="{{ highest_date }}">
+  </div>
+
+  {% include "call_sessions.html" %}
+  <script src="/static/history.js"></script>
+{% endblock content %}

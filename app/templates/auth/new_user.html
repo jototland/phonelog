@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+  /new_user
+{% endblock title %}
+
+
+{% block head %}
+{% endblock head %}
+
+
+{% block content %}
+  <div class="page-header">
+  <h1>Add new or modify existing user</h1>
+  </div>
+  <form method="POST">
+  {{ form.hidden_tag() }}
+  <div class="form_group">
+    {{ form.username.label(class="form-label") }}
+    {{ form.username(class="form-control", autofocus=True) }}
+  </div>
+  <div class="form_group">
+    {{ form.roles.label(class="form-label") }}
+    {{ form.roles(class="form-control") }}
+    <small class="form-text text-muted">A comma-separated list of zero or more of the following roles:
+      {{ legal_roles }}</small>
+  </div>
+  <div class=my-3>&nbsp;</div>
+  <div class="form_group">
+    {{ form.password1.label(class="form-label") }}
+    {{ form.password1(class="form-control") }}
+  </div>
+  <div class="form_group">
+    {{ form.password2.label(class="form-label") }}
+    {{ form.password2(class="form-control") }}
+  </div>
+  <div class=my-3>&nbsp;</div>
+  <input type="submit" class="btn btn-primary" value="Add or modify this user!">
+  </form>
+  <a href="{{ url_for('auth.view_users') }}">See all users</a>
+{% endblock content %}

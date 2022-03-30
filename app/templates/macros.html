@@ -1,0 +1,351 @@
+{% macro clipboard_icon() %}&#128203;{% endmacro %}
+{% macro big_right_arrow() %}<b>&xrarr;</b>{% endmacro %}
+{% macro big_left_arrow() %}<b>&xlarr;</b>{% endmacro %}
+{% macro telephone_receiver() %}&#128222;{% endmacro %}
+{% macro speaking_head() %}&#x1F5E3;&#xFE0F;{% endmacro %}
+{% macro gear() %}&#9881;{% endmacro %}
+{% macro speech_balloon() %}&#128172;{% endmacro %}
+{% macro hourglass_with_flowing_sand() %}&#9203;{% endmacro %}
+{% macro black_telephone() %}&#9742;{% endmacro %}
+{% macro cross_mark() %}&#10060;{% endmacro %}
+{% macro warning_sign() %}&#9888;{% endmacro %}
+{% macro megaphone() %}&#128227;{% endmacro %}
+{% macro ear() %}&#128066;{% endmacro %}
+{% macro desktop_computer() %}&#128421;{% endmacro %}
+{% macro runner() %}&#127939;{% endmacro %}
+{% macro office_building() %}&#127970;{% endmacro %}
+
+
+
+{% macro iso_datetime(epoch) %}
+  <span class="fix_iso_datetime text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">YYYY-MM-DD hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro iso_date(epoch) %}
+  <span class="fix_iso_date text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">YYYY-MM-DD</span>
+{% endmacro %}
+
+
+{% macro iso_time(epoch) %}
+  <span class="fix_iso_time text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro local_date(epoch) %}
+  <span class="fix_local_date text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro local_time(epoch) %}
+  <span class="fix_local_time text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro local_datetime(epoch) %}
+  <span class="fix_local_datetime text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro local_date_iso_time(epoch) %}
+  <span class="fix_local_date_iso_time text-nowrap" data-epoch="{{ epoch }}"
+  style="visibility: hidden;">hh:mm:ss</span>
+{% endmacro %}
+
+
+{% macro render_external_phone(digits, name) %}
+  {% if name %}
+    {{ name }}
+  {% endif %}
+  <span class="text-nowrap">
+    {{ phone_number_lookup_link(digits) | safe }}
+    <button class="px-0 border-0"
+            onclick="navigator.clipboard.writeText('+{{ digits }}')"
+            data-tooltip
+            data-bs-placement="top"
+            data-title-i18n="Copy to clipboard"
+            title="Copy to clipboard">
+      {{ clipboard_icon() }}
+    </button>
+  </span>
+{% endmacro %}
+
+
+{% macro render_service_number(digits, name) %}
+  <span class="text-muted">
+    {% if name %}
+      {{ name }}
+    {% endif %}
+    <span class="text-nowrap">
+      ({{ pretty_print_phone_no(digits) }})
+    </span>
+  </span>
+{% endmacro %}
+
+
+{% macro render_agent_phone(digits, name) %}
+  <span class="text-success">
+    {% if name %}
+      {{ name }}
+    {% endif %}
+    <span class="text-nowrap">
+      ({{ pretty_print_phone_no(digits) }})
+    </span>
+  </span>
+{% endmacro %}
+
+
+{% macro render_pbx_phone(digits, name) %}
+  <span class="text-secondary">
+    Zisson (from
+    <span class="text-nowrap">
+      {{ pretty_print_phone_no(digits) }})
+    </span>
+  </span>
+{% endmacro %}
+
+
+{% macro render_call_session(call_session) %}
+  <div class="call-session
+  {% if 'error' in call_session and call_session.error == 'invalidnumber' %}
+    blocked-invalid-number
+  {% endif %}
+  border px-2 py-2 rounded">
+    <div class="d-flex flex-row">
+      <div class="flex-fill">
+        {{ render_call_session_overview(call_session) }}
+      </div>
+      <button class="btn btn-sm dropdown-toggle justify-content-end align-self-end"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#details-{{ call_session.id }}"
+              aria-expanded="false"
+              aria-controls="details-{{ call_session.id }}"
+              data-tooltip data-bs-placement="top"
+                           data-title-i18n="Toggle detailed view">
+      </button>
+    </div>
+    <div class="collapse"
+         id="details-{{ call_session.id }}">
+      <div class="card card-body my-2">
+        {{ render_call_session_details(call_session.details) }}
+      </div>
+    </div>
+  </div>
+{% endmacro %}
+
+
+{% macro aligned_local_datetime(timestamp) %}
+  <span class="fixed-width-date">
+    {{ local_date(timestamp) }}
+  </span>
+  <span class="fixed-width-time">
+    {{ local_time(timestamp) }}
+  </span>
+{% endmacro %}
+
+
+{% macro render_call_session_overview(call_session) %}
+  {% if 'error' in call_session and call_session.error == 'invalidnumber' %}
+    <div class="d-flex flex-column">
+      <div class="d-flex flex-row flex-wrap-reverse">
+        <div class="d-flex flex-row flex-fill">
+          <div style="width: 4em;"></div>
+          <div class="text-muted">(blocked incoming call)</div>
+        </div>
+        <h6 class="justify-content-end">
+          {{ aligned_local_datetime(call_session.timestamp) }}
+        </h6>
+      </div>
+    </div>
+  {% else %}
+    <div class="d-flex flex-column">
+      <div class="d-flex flex-row flex-wrap-reverse">
+        <div class="d-flex flex-row flex-fill">
+
+        {% if call_session.incoming %}
+          <div style="width: 4em;"
+               data-tooltip data-bs-placement="top"
+               data-title-i18n="Incoming call">
+            {{ ear() }}{{ big_left_arrow() }}
+          </div>
+          <h6>
+            {{ render_external_phone(call_session.from_no, call_session.from_descr) }}
+          </h6>
+          {% else %}
+            <div style="width: 4em;"
+                 data-tooltip data-bs-placement="top"
+                 data-title-i18n="Outgoing call">
+            {{ megaphone() }}{{ big_right_arrow() }}
+          </div>
+          <h6 class="flex-fill">
+            {{ render_external_phone(call_session.to_no, call_session.to_descr) }}
+          </h6>
+        {% endif %}
+        </div>
+
+        <h6 class="justify-content-end">
+          {{ aligned_local_datetime(call_session.timestamp) }}
+        </h6>
+
+      </div>
+
+      <div class="d-flex flex-row">
+        {% if call_session.incoming %}
+        <div style="width: 4em;"
+             data-tooltip data-bs-placement="top"
+             data-title-i18n="External phone line">
+        </div>
+        <h6 class="flex-fill">
+          {{ render_service_number(call_session.to_no, call_session.to_descr) }}
+        </h6>
+        {% else %}
+        <div style="width: 4em;"
+             data-tooltip data-bs-placement="top"
+             data-title-i18n="External phone line">
+        </div>
+        <h6 class="flex-fill">
+          {{ render_service_number(call_session.from_no, call_session.from_descr) }}
+        </h6>
+        {% endif %}
+      </div>
+
+      {% if 'no_answer_time' in call_session %}
+        <div class="d-flex flex-row">
+          <div style="width: 4em;">
+            <span class="text-danger">{{ warning_sign() }}</span>
+          </div>
+          <span class="flex-fill text-danger">
+            <b><span data-i18n>No answer after</span>
+              {{ call_session.no_answer_time }}
+              <span data-i18n>seconds</span></b>
+          </span>
+        </div>
+      {% endif %}
+      {% if call_session.agent_info %}
+        <div class="d-flex flex-row">
+          <div style="width: 4em;"
+               data-tooltip data-bs-placement="top"
+               data-title-i18n="Agent name and phone">
+          </div>
+          <div class="text-muted">
+            {{ call_session.agent_info }}
+          </div>
+        </div>
+      {% endif %}
+      {% if 'error' in call_session and call_session.error %}
+        <div class="d-flex flex-row">
+          <div style="width: 4em;">
+            {{ cross_mark() }}
+          </div>
+          <div>
+            Failed: {{ call_session.error }}
+          </div>
+        </div>
+      {% endif %}
+      {% if 'active' in call_session and call_session.active %}
+        <div class="d-flex flex-row">
+          <div style="width: 4em;">
+            {{ runner() }}
+          </div>
+          <div>
+            Still active
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+
+{% macro render_call_session_details(details) %}
+  <table class="table table-responsive-lg table-bordered table-small table-hover m-0 p-0">
+    <colgroup>
+      <col style="width: 5em;">
+      {% for col in range(details.columns_count) %}
+        <col style="table-layout: fixed">
+      {% endfor %}
+    </colgroup>
+
+    <tbody>
+      {% for row in details.rows %}
+        <tr>
+          <td>
+            {{ local_time(row.timestamp) }}
+          </td>
+          {% for cell in row.cells %}
+            {{ render_call_session_details_event(cell) }}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
+
+
+{% macro render_call_session_details_event(event) %}
+  {% if not event %}
+    <td></td>
+  {% else %}
+
+    {% if event.error != '' %}
+      {% set bgcolor = 'table-danger' %}
+    {% else %}
+      {% set bgcolor = 'table-info' %}
+    {% endif %}
+
+    {% if event.category.name == "CALL" %}
+      {% set border = 'border-3 border-bottom-0' %}
+    {% elif event.category.name == "HANGUP" %}
+      {% set border = 'border-3 border-top-0' %}
+    {% else %} {# WAIT, ANSWER, TALK #}
+      {% set border = 'border-3 border-top-0 border-bottom-0' %}
+    {% endif %}
+
+    <td class="{{bgcolor}} {{border}}">
+      {% if event.category.name == "CALL" %}
+        {{ telephone_receiver() }}
+        {% if event.incoming %}
+          {{ render_external_phone(event.from_no, event.from_descr) }}
+        {% else %}
+          {{ render_pbx_phone(event.from_no, event.from_descr) }}
+        {% endif %}
+        <br>{{ big_right_arrow() }}
+        {% if event.to_service or event.incoming %}
+          {{ render_service_number(event.to_no, event.to_descr) }}
+        {% elif event.to_agent %}
+          {{ render_agent_phone(event.to_no, event.to_descr) }}
+        {% else %}
+          {{ render_external_phone(event.to_no, event.to_descr) }}
+        {% endif %}
+
+      {% elif event.category.name == "WAIT" %}
+        {{ hourglass_with_flowing_sand() }}
+
+      {% elif event.category.name == "ANSWER" %}
+
+        {% if event.incoming %}
+          {{ gear() }} (answered automatically)
+        {% else %}
+          {{ speaking_head() }} answered
+        {% endif %}
+
+      {% elif event.category.name == "TALK" %}
+        {{ speech_balloon() }}
+
+      {% elif event.category.name == "HANGUP" %}
+        {% if event.error == '' %}
+          {{ black_telephone() }} ended normally
+        {% else %}
+          {{ cross_mark() }} Failed: {{ event.error }}
+        {% endif %}
+      {% endif %}
+    </td>
+  {% endif %}
+{% endmacro %}

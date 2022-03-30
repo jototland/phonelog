@@ -1,0 +1,4 @@
+After installation, create an admin user with the command:
+flask adduser myadmin p@assw0rd admin agent
+
+The rest of the administration can be done from the webapp.
