@@ -1,6 +1,6 @@
 let current_language = "en"
 try {
-    if (navigator.language.substring(0, 2).toLowerCase() in ['no', 'nb', 'nn']) {
+    if (['no', 'nb', 'nn'].includes(navigator.language.substring(0, 2).toLowerCase())) {
         current_language = "no"
     }
 } catch (_) {}
