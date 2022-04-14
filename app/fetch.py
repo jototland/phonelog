@@ -54,6 +54,8 @@ def periodic_fetch():
         fetch_customer_data()
         set_value('last_update_other_data', str(now))
         changed = True
+        get_db().execute('delete from blocked_ip_addr where last_failed_attempt < ?',
+                         (datetime.utcnow().timestamp() - 24 * 60 * 60, ))
     if changed:
         from . import push_updates
         push_updates()

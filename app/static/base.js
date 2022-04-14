@@ -104,20 +104,20 @@ const fix_dates = (start=document) => {
     }
 }
 
-const fix_tooltips = (start=document, classes='') => {
-    for (let el of start.querySelectorAll('[data-tooltip]')) {
-        new bootstrap.Tooltip(el, { customClass: classes})
-        el.addEventListener('click', () => {
-            bootstrap.Tooltip.getOrCreateInstance(el).hide()
-        })
+const fix_tooltips = (() => {
+    let tooltip_save = undefined
+    return () => {
+        if (tooltip_save) {
+            for (el of document.querySelectorAll('.tooltip')) {
+                el.remove()
+            }
+        } else {
+            tooltip_save = new bootstrap.Tooltip(document.body, {
+                selector: '[data-tooltip]'
+            });
+        }
     }
-    for (let el of start.querySelectorAll('[data-tooltip-container-body]')) {
-        new bootstrap.Tooltip(el , { container: 'body', customClass: classes })
-        el.addEventListener('click', () => {
-            bootstrap.Tooltip.getOrCreateInstance(el).hide()
-        })
-    }
-}
+})()
 
 const unhide = () => {
     for (let el of document.querySelectorAll('.call-session')) {
@@ -142,10 +142,10 @@ const hide_blocked_calls_unless_checked = () => {
 }
 
 const fix_all = (start=document) => {
-    fix_i18n()
-    fix_dates()
-    fix_tooltips()
+    fix_i18n(start)
+    fix_dates(start)
     hide_blocked_calls_unless_checked()
+    fix_tooltips()
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -158,5 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('DOMContentLoaded', () => {
+    fix_tooltips()
     fix_all()
 })

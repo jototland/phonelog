@@ -86,13 +86,13 @@ def a_phone_descr(call_channel):
 
 
 class Category(Enum):
-    NONE    = "none"
-    CALL    = "call"
-    WAIT    = "wait"
-    ANSWER  = "answer"
-    TALK    = "talking"
-    HANGUP  = "hangup"
-
+    NONE       = "none"
+    CALL       = "call"
+    WAIT       = "wait"
+    ANSWER     = "answer"
+    TALK       = "talking"
+    HANGUP     = "hangup"
+    UNFINISHED = "unfinished"
 
 @dataclass
 class Event:
@@ -222,6 +222,12 @@ def get_call_session_data_details(call_session_id):
                 category = Category.HANGUP,
                 **kwargs
             ))
+        else:
+            events.append(Event(
+                timestamp = float('inf'),
+                category = Category.UNFINISHED,
+                **kwargs
+            ))
 
 
     # lookup phone numbers for each event
@@ -238,6 +244,8 @@ def get_call_session_data_details(call_session_id):
     for event_no in range(len(events)):
         if call_channels[event_no] not in column_for:
             for prev_used_column in columns_used.copy():
+                # FIXME: must also check if previous event in prev_used_column is completed,
+                #        otherwise it will compact events that are not finished (yet)
                 if prev_used_column not in call_channels[event_no:]:
                     columns_used.remove(prev_used_column)
             column_for[call_channels[event_no]] = min_not_taken(columns_used)

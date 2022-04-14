@@ -28,6 +28,11 @@ def call_session_view(call_session_id):
     return render_template('call_session.html', call_session_id=call_session_id, call_session=call_session)
 
 
+@main.route('/check_ip_config')
+def my_ip_address():
+    return '<pre>You have reached: ' + str(request.scheme) + '://' + str(request.host) + str(request.path) + '\nYour ip address: ' + str(request.remote_addr)
+
+
 @main.route('/history')
 @login_require_role('agent')
 def history_view():

@@ -5,6 +5,7 @@ Change Password for user '{{ current_user.get_id() }}'
 {% endblock title %}
 
 {% block content %}
+  <hr>
   <div class="page-header">
     <h1>Change Password for user '{{ current_user.username }}'</h1>
   </div>
@@ -17,12 +18,23 @@ Change Password for user '{{ current_user.get_id() }}'
     <div class="form_group">
       {{ form.new_password_1.label(class_="form_check_label") }}
       {{ form.new_password_1(class_="form-control") }}
-    </div>
+      <div id="password_1_diag" class="alert alert-secondary ml-0 mt-2 mb-3"></div>
     <div class="form_group">
       {{ form.new_password_2.label(class_="form_check_label") }}
       {{ form.new_password_2(class_="form-control") }}
+      <div id="password_2_diag" class="mt-2 mb-3"></div>
     </div>
-  <input type="submit" class="btn btn-primary" value="Change my password!">
+    <input id="submit" type="submit" class="mt-3 btn btn-primary" value="Change my password!">
   </form>
 
 {% endblock content %}
+
+{% block body_end %}
+  <script src="/static/passwordstrengthmeter.js"></script>
+  <script>
+    password_check('new_password_1', 'new_password_2',
+      'password_1_diag', 'password_2_diag',
+      'submit', {{ config['MIN_PASSWORD_SCORE'] }})
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" integrity="sha512-TZlMGFY9xKj38t/5m2FzJ+RM/aD5alMHDe26p0mYUMoCF5G7ibfHUQILq0qQPV3wlsnCwL+TPRNK4vIWGLOkUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock body_end %}

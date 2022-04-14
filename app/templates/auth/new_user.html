@@ -29,13 +29,25 @@
   <div class="form_group">
     {{ form.password1.label(class="form-label") }}
     {{ form.password1(class="form-control") }}
+    <div id="password_1_diag" class="alert alert-secondary ml-0 mt-2 mb-3"></div>
   </div>
   <div class="form_group">
     {{ form.password2.label(class="form-label") }}
     {{ form.password2(class="form-control") }}
+    <div id="password_2_diag" class="mt-2 mb-3"></div>
   </div>
   <div class=my-3>&nbsp;</div>
-  <input type="submit" class="btn btn-primary" value="Add or modify this user!">
+  <input id="submit" type="submit" class="btn btn-primary" value="Add or modify this user!">
   </form>
   <a href="{{ url_for('auth.view_users') }}">See all users</a>
 {% endblock content %}
+
+{% block body_end %}
+  <script src="/static/passwordstrengthmeter.js"></script>
+  <script>
+    password_check('password1', 'password2',
+      'password_1_diag', 'password_2_diag',
+      'submit', {{ config['MIN_PASSWORD_SCORE'] }})
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" integrity="sha512-TZlMGFY9xKj38t/5m2FzJ+RM/aD5alMHDe26p0mYUMoCF5G7ibfHUQILq0qQPV3wlsnCwL+TPRNK4vIWGLOkUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock body_end %}

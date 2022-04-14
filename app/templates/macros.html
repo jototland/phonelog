@@ -63,17 +63,19 @@
   {% if name %}
     {{ name }}
   {% endif %}
-  <span class="text-nowrap">
-    {{ phone_number_lookup_link(digits) | safe }}
-    <button class="px-0 border-0"
-            onclick="navigator.clipboard.writeText('+{{ digits }}')"
-            data-tooltip
-            data-bs-placement="top"
-            data-title-i18n="Copy to clipboard"
-            title="Copy to clipboard">
-      {{ clipboard_icon() }}
-    </button>
-  </span>
+  {% if digits != None %}
+    <span class="text-nowrap">
+      {{ phone_number_lookup_link(digits) | safe }}
+      <button class="px-0 border-0"
+              onclick="navigator.clipboard.writeText('+{{ digits }}')"
+              data-tooltip
+              data-bs-placement="top"
+              data-title-i18n="Copy to clipboard"
+              title="Copy to clipboard">
+        {{ clipboard_icon() }}
+      </button>
+    </span>
+  {% endif %}
 {% endmacro %}
 
 
@@ -82,10 +84,12 @@
     {% if name %}
       {{ name }}
     {% endif %}
-    <span class="text-nowrap">
-      ({{ pretty_print_phone_no(digits) }})
-    </span>
+    {% if digits != None %}
+      <span class="text-nowrap">
+        ({{ pretty_print_phone_no(digits) }})
+      </span>
   </span>
+{% endif %}
 {% endmacro %}
 
 
@@ -277,7 +281,9 @@
       {% for row in details.rows %}
         <tr>
           <td>
-            {{ local_time(row.timestamp) }}
+            {% if row.timestamp != float('inf') %}
+              {{ local_time(row.timestamp) }}
+            {% endif %}
           </td>
           {% for cell in row.cells %}
             {{ render_call_session_details_event(cell) }}

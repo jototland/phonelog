@@ -8,6 +8,7 @@ from flask_login import login_required
 from flask_socketio import SocketIO
 from flask_wtf.csrf import CSRFProtect
 from jinja2 import StrictUndefined
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import api, auth, db, error, main
 from .format_calldata import lookup_number
@@ -53,6 +54,7 @@ def create_app(test_config=None):
         REMEMBER_COOKIE_SECURE=not app.debug,
         ZISSON_API_HOST='api.zisson.com',
         ZISSON_STATUS_URL='https://zisson-kva.statuspage.io/',
+        MIN_PASSWORD_SCORE=3,
     )
     # config from config.py (or test_config) overrides hardcoded values
     if test_config is not None:
@@ -72,6 +74,16 @@ def create_app(test_config=None):
     envconfig(app, 'REMEMBER_COOKIE_INSECURE')
     if 'REMEMBER_COOKIE_INSECURE' in app.config:
         app.config['REMEMBER_COOKIE_SECURE'] = False
+    envconfig(app, 'NO_BACKGROUND_THREADS')
+    envconfig(app, 'TRUSTED_PROXIES_COUNT')
+    envconfig(app, 'MIN_PASSWORD_SCORE')
+
+    if ('TRUSTED_PROXIES_COUNT' in app.config):
+        trusted_proxies_count = int(app.config['TRUSTED_PROXIES_COUNT'])
+        app.wsgi_app = ProxyFix(app.wsgi_app,
+                                x_proto=trusted_proxies_count,
+                                x_host=trusted_proxies_count,
+                                x_for=trusted_proxies_count)
 
     if app.debug:
         app.jinja_env.undefined = StrictUndefined
@@ -84,7 +96,8 @@ def create_app(test_config=None):
     db.init_app(app)
 
     socketio.init_app(app)
-    if 'adduser' not in sys.argv:
+    if (not any(x in sys.argv for x in ['shell', 'adduser'])
+            and 'NO_BACKGROUND_THREADS' not in app.config):
         socketio.start_background_task(worker, app)
 
     auth.init_app(app)
@@ -98,6 +111,7 @@ def create_app(test_config=None):
     app.add_template_global(phone_number_lookup_link)
     app.add_template_global(pretty_print_phone_no)
     app.add_template_global(lookup_number)
+    app.add_template_global(float)
 
     # app.jinja_env.trim_blocks = True
     # app.jinja_env.lstrip_blocks = True

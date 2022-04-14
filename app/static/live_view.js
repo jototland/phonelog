@@ -134,10 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         last_update = timestamp()
         update_connection_status()
 
-        for (let el of document.querySelectorAll('.tooltip.dynamic')) {
-            el.remove()
-        }
-
         old_expanded_ids = Array.from(
             active_content.querySelectorAll('.collapse.show[id^="details-"]')
         ).map(x => x.id)
@@ -156,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        fix_all()
+        fix_all(active_content)
         if (cb) cb()
     })
 

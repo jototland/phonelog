@@ -1,7 +1,10 @@
 from base64 import b64decode, b85decode, b85encode
+from datetime import datetime
+from flask import current_app
 from functools import wraps
 import os
 from urllib.parse import urljoin, urlparse
+from zxcvbn import zxcvbn
 
 import click
 from flask import abort, flash, redirect, render_template, request, url_for
@@ -26,12 +29,12 @@ from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
 
 from .db import add_to_schema, get_db
-from .model.utils import generate_create_table_sql, generate_upsert_sql
+from .model.utils import generate_create_table_sql, generate_namedtuple, generate_upsert_sql
 
 
 TOKEN_SIZE=32 # number of bytes in random user identifier stored in cookies
 USER_ROLES=['admin', 'agent', 'zisson_push']
-
+MAX_LOGIN_ATTEMPTS=20
 
 User_fields = (
     ('username', str, 'text primary key'),
@@ -46,6 +49,21 @@ add_to_schema(generate_create_table_sql('users',
 
 add_to_schema("""\
 create index users_token_idx on users (token);""")
+
+
+BlockedIpAddr_fields = (
+    ('ip_address', str, 'string primary key'),
+    ('num_failed_attempts', int, 'integer'),
+    ('last_failed_attempt', float, 'real'),
+)
+
+BlockedIpAddr = generate_namedtuple('BlockedIpAddr', BlockedIpAddr_fields)
+
+add_to_schema(generate_create_table_sql('blocked_ip_addr', BlockedIpAddr_fields))
+
+add_to_schema("""\
+create index blocked_ip_addr_last_failed_attempt_idx
+on blocked_ip_addr (last_failed_attempt);""")
 
 def bin2text(blob):
     return b85encode(blob).decode(encoding='ascii')
@@ -191,6 +209,12 @@ def login():
         return safe_redirect(request.args.get('next'))
     form = LoginForm()
     if form.validate_on_submit():
+        if get_db().execute(
+                "select 1 from blocked_ip_addr "
+                "where ip_address = ? "
+                "and num_failed_attempts >= ?",
+                (request.remote_addr, MAX_LOGIN_ATTEMPTS)).fetchone():
+            return "ip blocked", 403
         if (result := get_db().execute(
             "select password_hash, roles, token "
             "from users where username = ?",
@@ -203,9 +227,20 @@ def login():
                         "update users set token = ? where username = ?",
                         (token := bin2text(os.urandom(TOKEN_SIZE)),
                          form.username.data))
+                get_db().execute(
+                    "delete from blocked_ip_addr where ip_address = ?",
+                    (request.remote_addr, ))
                 login_user(User(form.username.data, token, roles),
                            remember=form.persistent.data)
                 return safe_redirect(request.args.get('next'))
+        get_db().execute(
+            "insert into blocked_ip_addr "
+            "(ip_address, num_failed_attempts, last_failed_attempt) "
+            "values (?, ?, ?) "
+            "on conflict (ip_address) do update set "
+            "num_failed_attempts = num_failed_attempts + 1, "
+            "last_failed_attempt = excluded.last_failed_attempt",
+            (request.remote_addr, 1, datetime.utcnow().timestamp()))
         flash("Invalid username and/or password")
         return redirect(url_for('auth.login'))
     return render_template('auth/login.html', form=form)
@@ -263,19 +298,23 @@ def change_password():
         (old_password_hash,) = db.execute(
             "select password_hash from users where username = ?",
             (current_user.username, )).fetchone()
-        if (check_password_hash(old_password_hash,
-                                form.old_password.data) and
-                form.new_password_1.data == form.new_password_2.data):
-            print("passwords matches and ok")
-            db.execute(
-                "update users set password_hash = ? "
-                "where username = ?",
-                (generate_password_hash(form.new_password_1.data),
-                 current_user.username))
-            print("updated")
-            return redirect(url_for('main.index'))
-        flash("wrong password!")
-        return redirect(url_for('auth.change_password'))
+        if not check_password_hash(old_password_hash, form.old_password.data):
+            flash('Incorrect (old) password')
+            return redirect(url_for('auth.change_pasword'))
+        if form.new_password_1.data != form.new_password_1.data:
+            flash('Passwords fail to match')
+            return redirect(url_for('auth.change_pasword'))
+        if (zxcvbn(form.new_password_1.data)['score'] <
+                int(current_app.config['MIN_PASSWORD_SCORE'])):
+            flash('New password does not meet minimum requirements')
+            return redirect(url_for('auth.change_pasword'))
+        db.execute(
+            "update users set password_hash = ? "
+            "where username = ?",
+            (generate_password_hash(form.new_password_1.data),
+             current_user.username))
+        flash('Password changed')
+        return redirect(url_for('main.index'))
     return render_template('/auth/changepass.html', form=form)
 
 
@@ -292,6 +331,10 @@ class NewUserForm(FlaskForm):
 def add_user():
     form = NewUserForm()
     if form.validate_on_submit():
+        if (zxcvbn(form.password1.data)['score'] <
+                int(current_app.config['MIN_PASSWORD_SCORE'])):
+            flash('Password does not meet minimum requirements')
+            return redirect(url_for('auth.add_user'))
         if form.password1.data != form.password2.data:
             flash('passwords do not match')
             return redirect(url_for('auth.add_user'))
@@ -337,6 +380,10 @@ def view_users():
 @with_appcontext
 def cmd_adduser(username, password, roles):
     roles = normalize_roles(", ".join(roles))
+    if (zxcvbn(password)['score'] <
+            int(current_app.config['MIN_PASSWORD_SCORE'])):
+        print(f"Password does not meet minimum requirements")
+        exit(1)
     password_hash = generate_password_hash(password)
     get_db().execute(upsert_user,
                      (username, password_hash, roles, None))

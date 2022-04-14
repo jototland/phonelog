@@ -6,6 +6,8 @@ services:
       - "phonelog_data:/app/instance"
     expose:
       - "5000"
+    environment:
+      - TRUSTED_PROXIES_COUNT=1
     env_file:
       - secrets.txt # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
   caddy:
