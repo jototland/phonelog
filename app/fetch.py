@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from flask import current_app
-import requests
 
 from .model.keyvalue import get_value, set_value
 from .db import get_db, transaction
@@ -16,6 +15,7 @@ from .parse_xml import parse_call_data
 from .parse_xml import parse_contacts
 from .parse_xml import parse_customer_data
 from .utils import uuid_expand
+from .api import send_push_updates
 
 
 def zisson_api_get(path, params=None):
@@ -57,8 +57,7 @@ def periodic_fetch():
         get_db().execute('delete from blocked_ip_addr where last_failed_attempt < ?',
                          (datetime.utcnow().timestamp() - 24 * 60 * 60, ))
     if changed:
-        from . import push_updates
-        push_updates()
+        send_push_updates()
 
 
 def fetch_call_data():
@@ -97,8 +96,7 @@ def fetch_contacts():
     with transaction(db):
         db.executemany(upsert_contacts, contacts)
     current_app.logger.info('Contacts updated from zisson')
-    from . import push_updates
-    push_updates()
+    send_push_updates()
 
 
 def fetch_customer_data():
@@ -114,5 +112,11 @@ def fetch_customer_data():
         db.executemany(upsert_internal_phones, internal_phones)
         db.executemany(upsert_service_numbers, service_numbers)
     current_app.logger.info('Customer data updated from zisson')
-    from . import push_updates
-    push_updates()
+    send_push_updates()
+
+
+# def jo():
+#     from . import create_app
+#     app = create_app()
+#     with app.app_context():
+#         periodic_fetch()

@@ -5,8 +5,6 @@ import sys
 
 from flask import Flask
 from flask_login import login_required
-from flask_socketio import SocketIO
-from flask_wtf.csrf import CSRFProtect
 from jinja2 import StrictUndefined
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -14,10 +12,7 @@ from . import api, auth, db, error, main
 from .format_calldata import lookup_number
 from .model import keyvalue
 from .utils import phone_number_lookup_link, pretty_print_phone_no
-
-
-socketio = SocketIO()
-csrf = CSRFProtect()
+from .extensions import socketio, csrf
 
 
 def envconfig(app, key, envvar=None, required=False, nonempty=False):
@@ -35,7 +30,7 @@ def envconfig(app, key, envvar=None, required=False, nonempty=False):
         sys.exit(1)
 
 
-def create_app(test_config=None):
+def create_app(test_config=None, minimal_app=False):
 
     logging.basicConfig(
         format="%(levelname)s %(module)s %(name)s %(asctime)s: %(message)s",
@@ -47,6 +42,7 @@ def create_app(test_config=None):
     # hardcoded config defaults, can be overrided
     app.config.from_mapping(
         SECRET_KEY=b85encode(os.urandom(32)).decode(encoding='ascii'),
+        INTERNAL_URL='http://localhost:5000/',
         DATABASE=os.path.join(app.instance_path, 'data.sqlite'),
         SESSION_COOKIE_HTTPONLY=True,
         REMEMBER_COOKIE_HTTPONLY=True,
@@ -64,17 +60,20 @@ def create_app(test_config=None):
 
     # environment variables overrides config.py and hardcoded values
     envconfig(app, 'SECRET_KEY', required=True, nonempty=True)
+    envconfig(app, 'INTERNAL_URL')
     envconfig(app, 'ZISSON_API_HOST', required=True, nonempty=True)
     envconfig(app, 'ZISSON_STATUS_URL', required=True, nonempty=True)
     envconfig(app, 'ZISSON_API_USERNAME', required=True, nonempty=True)
     envconfig(app, 'ZISSON_API_PASSWORD', required=True, nonempty=True)
+    envconfig(app, 'REDIS_HOST')
+    envconfig(app, 'REDIS_PORT')
+    envconfig(app, 'REDIS_DB')
     envconfig(app, 'SESSION_COOKIE_INSECURE')
     if 'SESSION_COOKIE_INSECURE' in app.config:
         app.config['SESSION_COOKIE_SECURE'] = False
     envconfig(app, 'REMEMBER_COOKIE_INSECURE')
     if 'REMEMBER_COOKIE_INSECURE' in app.config:
         app.config['REMEMBER_COOKIE_SECURE'] = False
-    envconfig(app, 'NO_BACKGROUND_THREADS')
     envconfig(app, 'TRUSTED_PROXIES_COUNT')
     envconfig(app, 'MIN_PASSWORD_SCORE')
 
@@ -95,10 +94,9 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
+    if minimal_app:
+        return app
     socketio.init_app(app)
-    if (not any(x in sys.argv for x in ['shell', 'adduser'])
-            and 'NO_BACKGROUND_THREADS' not in app.config):
-        socketio.start_background_task(worker, app)
 
     auth.init_app(app)
     csrf.init_app(app)
@@ -129,19 +127,12 @@ def run(app):
     socketio.run(app)
 
 
-def push_updates():
-    from . import live_view
-    live_view.push_updates()
-
-
-def worker(app):
-    from .fetch import periodic_fetch
-    with app.app_context():
-        app.logger.info('Starting background thread')
-    while True:
-        with app.app_context():
-            periodic_fetch()
-        socketio.sleep(2 * 60) # 2 minutes
+# import requests
+# def push_updates():
+#     from . import live_view
+#     # FIXME: this doesn't work from work queue
+#     # live_view.push_updates()
+#     requests.put('localhost:5000/push_updates')
 
 
 from . import live_view, model

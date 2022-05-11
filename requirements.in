@@ -16,3 +16,6 @@ python_dateutil
 # or wait for a new official release of flask-login
 Werkzeug<2.1
 zxcvbn
+redis
+rq
+apscheduler
