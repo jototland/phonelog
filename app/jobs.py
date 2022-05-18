@@ -5,8 +5,6 @@ from flask import g
 from redis import ConnectionError, Redis
 from rq import Queue
 
-from . import create_app
-
 
 def get_redis():
     if 'redis' not in g:
@@ -25,7 +23,7 @@ def redis_wait_ready():
             redis.ping()
             ready = True
         except ConnectionError:
-            logging.info("Waiting for Redis")
+            current_app.logger.info("Waiting for Redis")
             time.sleep(1)
 
 

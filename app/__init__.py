@@ -4,15 +4,29 @@ import os
 import sys
 
 from flask import Flask
-from flask_login import login_required
 from jinja2 import StrictUndefined
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from . import api, auth, db, error, main
+from . import (
+    api,
+    auth,
+    db,
+    error,
+    extensions,
+    format_calldata,
+    internal,
+    jobs,
+    live_view,
+    main,
+    model,
+    parse_xml,
+    utils,
+    version,
+)
+from .extensions import csrf, socketio
 from .format_calldata import lookup_number
 from .model import keyvalue
 from .utils import phone_number_lookup_link, pretty_print_phone_no
-from .extensions import socketio, csrf
 
 
 def envconfig(app, key, envvar=None, required=False, nonempty=False):
@@ -96,13 +110,16 @@ def create_app(test_config=None, minimal_app=False):
 
     if minimal_app:
         return app
+
     socketio.init_app(app)
 
     auth.init_app(app)
     csrf.init_app(app)
     app.register_blueprint(api.api)
     app.register_blueprint(main.main)
+    app.register_blueprint(internal.internal)
     csrf.exempt(api.api)
+    csrf.exempt(internal.internal)
     error.init_app(app)
     keyvalue.init_app(app)
 
@@ -111,28 +128,4 @@ def create_app(test_config=None, minimal_app=False):
     app.add_template_global(lookup_number)
     app.add_template_global(float)
 
-    # app.jinja_env.trim_blocks = True
-    # app.jinja_env.lstrip_blocks = True
-
     return app
-
-
-@socketio.on('connect')
-@login_required
-def on_connect():
-    pass
-
-
-def run(app):
-    socketio.run(app)
-
-
-# import requests
-# def push_updates():
-#     from . import live_view
-#     # FIXME: this doesn't work from work queue
-#     # live_view.push_updates()
-#     requests.put('localhost:5000/push_updates')
-
-
-from . import live_view, model

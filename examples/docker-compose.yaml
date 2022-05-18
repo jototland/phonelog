@@ -1,7 +1,7 @@
 version: "3.9"
 services:
-  phonelog:
-    image: jototland/phonelog
+  webapp:
+    image: jototland/phonelog:1.0.0
     volumes:
       - "phonelog_data:/app/instance"
     expose:
@@ -10,21 +10,23 @@ services:
       - TRUSTED_PROXIES_COUNT=1
       - REDIS_HOST=redis
     env_file:
-      - secrets.txt # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+      - secrets/secret_key.env
   rq_worker:
-    image: jototland/phonelog
-    command: ./start-rq.sh
+    image: jototland/phonelog:1.0.0
+    command: ./scripts/start-rq.sh
     depends_on:
       - "redis"
     environment:
       - REDIS_HOST=redis
+      - INTERNAL_URL=http://webapp:5000/
     volumes:
       - "phonelog_data:/app/instance"
     env_file:
-      - secrets.txt # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+      - secrets/secret_key.env
+      - secrets/zisson_credentials.env # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
   scheduler:
-    image: jototland/phonelog
-    command: python app/scheduler.py
+    image: jototland/phonelog:1.0.0
+    command: python -m app.scheduler
     depends_on:
       - "redis"
     environment:
@@ -32,7 +34,7 @@ services:
     volumes:
       - "phonelog_data:/app/instance"
     env_file:
-      - secrets.txt # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+      - secrets/secret_key.env
   caddy:
     image: caddy:2-alpine
     volumes:
@@ -47,6 +49,7 @@ services:
       - "443:443"
   redis:
     image: redis:7-alpine
+    command: redis-server
     expose:
       - "6379"
 volumes:

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% from "macros.html" import fmtdictlist %}
 
 {% block content %}
   <div class="page-header">
@@ -12,5 +13,5 @@
     </form>
   </div>
 
-  <pre>{{ contacts }}</pre>
+    {{ fmtdictlist(contacts) }}
 {% endblock content %}

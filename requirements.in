@@ -8,7 +8,7 @@ flask_socketio
 flask-wtf
 lxml
 requests
-python_dateutil
+python-dateutil
 # 2022-03-29: Werkzeug 2.1 minor version breakage: they removed safe_str_cmp
 # either keep Werkzeug at 2.0
 # or set werkzeug.security.safe_str_cmp = hmac.compare_digest
@@ -18,4 +18,4 @@ Werkzeug<2.1
 zxcvbn
 redis
 rq
-apscheduler
+schedule

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% from "macros.html" import fmtdictlist %}
 
 {% block navbarbuttons %}
 {% endblock %}
@@ -29,15 +30,15 @@
 <div class="tab-content" id="myTabContent">
   <div class="tab-pane fade show active" id="agents" role="tabpanel" aria-labelledby="agents-tab">
     <h2>Agents</h2>
-    <pre>{{ agents }}</pre>
+    {{ fmtdictlist(agents) }}
   </div>
   <div class="tab-pane fade" id="internal-phones" role="tabpanel" aria-labelledby="internal-phones-tab">
     <h2>Internal phones</h2>
-    <pre>{{ internal_phones }}</pre>
+    {{ fmtdictlist(internal_phones) }}
   </div>
   <div class="tab-pane fade" id="service-numbers" role="tabpanel" aria-labelledby="service-numbers-tab">
   <h2>Service numbers</h2>
-  <pre>{{ service_numbers }}</pre>
+    {{ fmtdictlist(service_numbers) }}
   </div>
 </div>
 

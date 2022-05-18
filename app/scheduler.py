@@ -1,39 +1,44 @@
+"""A simple scheduler for periodic tasks
+
+This is a separate process, and should not be included in webapp
+
+To run: python -m app.scheduler
+"""
+
+import rq
+
+
 if __name__ == "__main__":
 
-    import atexit
+    from datetime import datetime
     from functools import wraps
-
-    from apscheduler.schedulers.blocking import BlockingScheduler
+    import schedule
+    import time
 
     from .fetch import fetch_call_data, fetch_customer_data, fetch_contacts
     from .jobs import enqueue, redis_wait_ready
-
     from . import create_app
 
 
     _app = create_app(minimal_app = True)
-    scheduler = BlockingScheduler(job_defaults = {'coalesce': True})
-    atexit.register(lambda: scheduler.shutdown())
 
 
-    def enqueue_with_app_context(func):
+    def rq_enqueue_with_app_context(func):
         @wraps(func)
-        def wrapper():
+        def wrapper(*args, **kwargs):
             with _app.app_context():
-                enqueue(func)
+                enqueue(func, *args, **kwargs)
         return wrapper
 
 
-    def schedule(func, **kwargs):
-        fn = enqueue_with_app_context(func)
-        fn()
-        scheduler.add_job(func=fn, trigger="interval", **kwargs)
+    with _app.app_context():
+        redis_wait_ready()
 
+    rq_enqueue_with_app_context(fetch_call_data)
+    schedule.every(2).minutes.do(rq_enqueue_with_app_context(fetch_call_data))
+    schedule.every(7).hours.do(rq_enqueue_with_app_context(fetch_customer_data))
+    schedule.every(7).hours.do(rq_enqueue_with_app_context(fetch_contacts))
 
-    redis_wait_ready()
-
-    schedule(fetch_call_data, minutes=2)
-    schedule(fetch_customer_data, hours=7)
-    schedule(fetch_contacts, hours=7)
-
-    scheduler.start()
+    while True:
+        schedule.run_pending()
+        time.sleep(5)

@@ -6,9 +6,10 @@ version=$(cut -d '"' -f 2 app/version.py)
 grep -v '^\s*#' .gitignore | grep -v '^\s*$' | awk '{print "**/" $1}' > .dockerignore
 
 cat <<- EOF> Dockerfile.phonelog
-	FROM python:3.10-slim-bullseye
+	FROM python:3.10-bullseye
 	RUN useradd -M -d /nonexistent app && pip install $requirements && mkdir /app && mkdir /app/instance && chown app:app /app/instance
 	COPY app /app/app
+        COPY scripts /app/scripts
 	USER app
 	WORKDIR /app
 	EXPOSE 5000

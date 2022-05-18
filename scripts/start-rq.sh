@@ -12,6 +12,6 @@ if [ -z "$REDIS_URL" ]; then
     REDIS_URL="redis://${REDIS_HOST}:${REDIS_PORT}"
 fi
 
-until rq worker -u "${REDIS_URL}" --with-scheduler -w app.worker.FlaskWorker; do
+until rq worker -u "${REDIS_URL}" --with-scheduler -w app.rq_worker.FlaskWorker; do
     sleep 1
 done

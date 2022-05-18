@@ -1,3 +1,13 @@
+# only https
+
 :80 {
-    reverse_proxy phonelog:5000
+    reverse_proxy webapp:5000
 }
+
+# with a given certificate (could be self-signed)
+# (drop the line with tls if using letsencrypt)
+
+# foobar {
+#     reverse_proxy webapp:5000
+#     tls /path/to/cert.certbundle /path/to/cert.key
+# }

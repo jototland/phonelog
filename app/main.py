@@ -1,3 +1,6 @@
+"""URLs intended for humans"""
+
+
 from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -8,7 +11,7 @@ from .auth import login_require_role
 from .fetch import fetch_contacts, fetch_customer_data
 from .db import get_db
 from .format_calldata import call_sessions_between, get_call_session_data
-from .utils import prettify_json, uuid_compact
+from .utils import uuid_compact
 
 
 main = Blueprint('main', __name__)
@@ -23,7 +26,6 @@ def index():
 @main.route('/call_session_id/<call_session_id>')
 @login_require_role('agent')
 def call_session_view(call_session_id):
-    # return call_session_id
     call_session = get_call_session_data(uuid_compact(call_session_id))
     return render_template('call_session.html', call_session_id=call_session_id, call_session=call_session)
 
@@ -92,15 +94,11 @@ def view_customer_data():
         fetch_customer_data()
         flash('Customer data updated')
         return redirect(url_for('main.view_customer_data'))
-    agents = prettify_json(
-        [dict(row) for row in
-         get_db().execute("select * from agents").fetchall()])
-    internal_phones = prettify_json(
-        [dict(row) for row in
-         get_db().execute("select * from internal_phones").fetchall()])
-    service_numbers = prettify_json(
-        [dict(row) for row in
-         get_db().execute("select * from service_numbers").fetchall()])
+    agents = [dict(row) for row in get_db().execute("select * from agents").fetchall()]
+    internal_phones = [dict(row) for row in
+                       get_db().execute("select * from internal_phones").fetchall()]
+    service_numbers = [dict(row) for row in
+                       get_db().execute("select * from service_numbers").fetchall()]
     return render_template('customer_data.html',
                            form=form,
                            agents=agents,
@@ -116,16 +114,8 @@ def view_contacts():
         fetch_contacts()
         flash('Contacts updated')
         return redirect(url_for('main.view_contacts'))
-    contacts = prettify_json(
-        [dict(row) for row in
-         get_db().execute("select * from contacts").fetchall()])
+    contacts = [dict(row) for row
+                in get_db().execute("select * from contacts").fetchall()]
     return render_template('contacts.html',
                            form=form,
                            contacts=contacts)
-
-
-# @main.route('/app.config')
-# @login_require_role('admin')
-# def app_config_view():
-#     config = prettify_json({k: str(v) for k, v in current_app.config.items()})
-#     return '<html><pre>' + config + '</pre>/<html>'

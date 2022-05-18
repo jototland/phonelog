@@ -16,6 +16,32 @@
 {% macro office_building() %}&#127970;{% endmacro %}
 
 
+{% macro fmtdictlist(list) %}
+  <table class="table table-sm"><tbody>
+      {% for dict in list %}
+        {% set list_loop = loop %}
+        {% for k,v in dict.items() %}
+          <tr class="{{ list_loop.cycle('table-default','table-active') }}">
+            <td>{{ k }}</td>
+            <td>
+              {% if 'last_updated' in k %}
+                {{ local_datetime(v) }}
+              {% else %}
+                {{ v }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td colspan="2">
+            <hr>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
+
 
 {% macro iso_datetime(epoch) %}
   <span class="fix_iso_datetime text-nowrap" data-epoch="{{ epoch }}"

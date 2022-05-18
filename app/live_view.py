@@ -3,7 +3,7 @@ from flask.templating import render_template
 from flask_socketio import disconnect, emit, join_room
 from flask_wtf.csrf import ValidationError, validate_csrf
 
-from . import socketio
+from .extensions import socketio
 from .auth import login_require_role
 from .format_calldata import get_call_session_data, newest_call_session_ids
 
@@ -14,6 +14,12 @@ def push_updates(recipient='live_view_clients'):
         call_sessions=map(get_call_session_data,
                           newest_call_session_ids()))
     socketio.emit('replace_content', html, to=recipient)
+
+
+@socketio.on('connect')
+@login_require_role('agent')
+def on_connect():
+    pass
 
 
 @socketio.on('join_live_view_clients')

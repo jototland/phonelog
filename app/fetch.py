@@ -1,8 +1,11 @@
+"""Periodic tasks run from scheduler"""
+
 from datetime import datetime
 
 from flask import current_app
+import requests
 
-from .model.keyvalue import get_value, set_value
+from .internal import send_push_updates
 from .db import get_db, transaction
 from .model.call_data import upsert_call_channels, upsert_call_sessions
 from .model.contacts import upsert_contacts
@@ -11,11 +14,11 @@ from .model.customer_data import (
     upsert_internal_phones,
     upsert_service_numbers,
 )
+from .model.keyvalue import get_value, set_value
 from .parse_xml import parse_call_data
 from .parse_xml import parse_contacts
 from .parse_xml import parse_customer_data
 from .utils import uuid_expand
-from .api import send_push_updates
 
 
 def zisson_api_get(path, params=None):
@@ -31,33 +34,6 @@ def zisson_api_get(path, params=None):
     except requests.RequestException as err:
         current_app.logger.warn(str(err))
         return None
-
-
-def get_float(s, fallback=0.0):
-    try:
-        return float(s)
-    except (ValueError, TypeError):
-        return fallback
-
-def periodic_fetch():
-    last_update_call_data = get_float(get_value('last_update_call_data'))
-    last_update_other_data = get_float(get_value('last_update_other_data'))
-    now = datetime.utcnow().timestamp()
-    changed = False
-
-    if now - last_update_call_data > 2 * 60: # 2 minutes
-        changed = fetch_call_data()
-        if changed:
-            set_value('last_update_call_data', str(now))
-    if now - last_update_other_data > 23 * 60 * 60: # 23 hours
-        fetch_contacts()
-        fetch_customer_data()
-        set_value('last_update_other_data', str(now))
-        changed = True
-        get_db().execute('delete from blocked_ip_addr where last_failed_attempt < ?',
-                         (datetime.utcnow().timestamp() - 24 * 60 * 60, ))
-    if changed:
-        send_push_updates()
 
 
 def fetch_call_data():
@@ -84,7 +60,8 @@ def fetch_call_data():
                 - call_sessions[-1].start_timestamp
                 <= 5 * 60):
             break
-    return updated
+    if updated:
+        send_push_updates()
 
 
 def fetch_contacts():
@@ -113,10 +90,3 @@ def fetch_customer_data():
         db.executemany(upsert_service_numbers, service_numbers)
     current_app.logger.info('Customer data updated from zisson')
     send_push_updates()
-
-
-# def jo():
-#     from . import create_app
-#     app = create_app()
-#     with app.app_context():
-#         periodic_fetch()

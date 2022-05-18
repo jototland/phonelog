@@ -1,3 +1,6 @@
+"""flask_login helpers, authentication, authorization"""
+
+
 from base64 import b64decode, b85decode, b85encode
 from datetime import datetime
 from flask import current_app
