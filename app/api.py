@@ -27,3 +27,4 @@ def receive_zisson_data():
         db.executemany(upsert_call_sessions, call_sessions)
         db.executemany(upsert_call_channels, call_channels)
     push_updates()
+    return "ok"
