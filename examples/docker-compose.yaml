@@ -23,7 +23,8 @@ services:
       - "phonelog_data:/app/instance"
     env_file:
       - secrets/secret_key.env
-      - secrets/zisson_credentials.env # SECRET_KEY, ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+      - secrets/zisson_api_credentials.env # ZISSON_API_USERNAME, ZISSON_API_PASSWORD
+      - secrets/zisson_sftp_credentials.env # ZISSON_SFTP_USERNAME, ZISSON_SFTP_PASSWORD
   scheduler:
     image: jototland/phonelog:1.0.0
     command: python -m app.scheduler
@@ -39,6 +40,8 @@ services:
     image: caddy:2-alpine
     volumes:
       - "./Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "./phonelog.cert:/phonelog.cert:ro"
+      - "./phonelog.key:/phonelog.key:ro"
       - "caddy_data:/data"
       - "caddy_config:/config"
     expose:
