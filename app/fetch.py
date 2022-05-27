@@ -7,7 +7,7 @@ import requests
 
 from .internal import send_push_updates
 from .db import get_db, transaction
-from .model.call_data import upsert_call_channels, upsert_call_sessions
+from .model.call_data import upsert_call_channels, upsert_call_sessions, upsert_recordings
 from .model.contacts import upsert_contacts
 from .model.customer_data import (
     upsert_agents,
@@ -46,7 +46,7 @@ def fetch_call_data():
                                  {'LastCallSessionId': last_call_session_id})
         if not content:
             break
-        call_sessions, call_channels = parse_call_data(content)
+        call_sessions, call_channels, recordings = parse_call_data(content)
         if len(call_sessions) == 0:
             break
         current_app.logger.info(f'Read {len(call_sessions)} new call sessions from zisson')
@@ -56,6 +56,7 @@ def fetch_call_data():
         with transaction(db):
             db.executemany(upsert_call_sessions, call_sessions)
             db.executemany(upsert_call_channels, call_channels)
+            db.executemany(upsert_recordings, recordings)
         if (datetime.utcnow().timestamp()
                 - call_sessions[-1].start_timestamp
                 <= 5 * 60):

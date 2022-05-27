@@ -66,3 +66,25 @@ on call_channels (call_session_id);""")
 upsert_call_channels = generate_upsert_sql('call_channels',
                                           CallChannel_fields,
                                           ('call_channel_id',))
+
+
+Recording_fields = (
+    ('recording_id', str, 'text primary key'),
+    ('call_session_id', str, 'text references call_sessions (call_session_id) on delete cascade'),
+    ('call_channel_id', str, 'text references call_channels (call_channel_id) on delete cascade'),
+    ('start_timestamp', float, 'real not null'),
+    ('stop_timestamp', float, 'real'),
+    ('completed', int, 'integer'), # RecordingStatus=Completed (&& Active=false ?)
+)
+
+Recording = generate_namedtuple('Recording', Recording_fields)
+
+add_to_schema(generate_create_table_sql('recordings', Recording_fields))
+
+add_to_schema("""\
+create index recordings_call_session_id_idx
+on recordings (call_session_id);""")
+
+upsert_recordings = generate_upsert_sql('recordings',
+                                        Recording_fields,
+                                        ('recording_id',))

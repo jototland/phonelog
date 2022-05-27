@@ -3,7 +3,7 @@ from enum import Enum
 
 import lxml.etree
 
-from .model.call_data import CallChannel, CallSession
+from .model.call_data import CallChannel, CallSession, Recording
 from .model.contacts import Contact
 from .model.customer_data import Agent, InternalPhone, ServiceNumber
 from .utils import e164_to_int, iso_datetime_to_epoch, str_to_bool, uuid_compact, uuid_expand
@@ -168,7 +168,7 @@ def get_service_number_id(call_session: lxml.etree._Element,
 
 
 def parse_call_data(xmldata: bytes):
-    call_sessions, call_channels = [], []
+    call_sessions, call_channels, recordings = [], [], []
     data = lxml.etree.fromstring(xmldata)
     for call_session in data.xpath('CallSession'):
         call_session_id = subuuid(call_session, 'CallSessionId')
@@ -203,4 +203,21 @@ def parse_call_data(xmldata: bytes):
                 service_number_id = get_service_number_id(
                     call_session, call_channel_id, b_number),
             ))
-    return call_sessions, call_channels
+        for recording in call_session.xpath('RecordingSessions/RecordingSession'):
+            call_channel_id = subuuid(recording, 'CallChannelId')
+            for call_channel in call_channels:
+                if call_channel.call_channel_id == call_channel_id:
+                    break
+            else:
+                continue
+            recordings.append(Recording(
+                recording_id = subuuid(recording, 'RecordingId'),
+                call_session_id = call_channel.call_session_id,
+                call_channel_id = call_channel_id,
+                start_timestamp = subtimestamp(recording, 'StartTimestamp'),
+                stop_timestamp = subtimestamp(recording, 'StopTimestamp'),
+                completed = int(subtext(recording, 'RecordingStatus') == 'Completed')
+            ))
+
+
+    return call_sessions, call_channels, recordings
