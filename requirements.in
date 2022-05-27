@@ -19,3 +19,4 @@ zxcvbn
 redis
 rq
 schedule
+pysftp

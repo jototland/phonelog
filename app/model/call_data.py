@@ -85,6 +85,10 @@ add_to_schema("""\
 create index recordings_call_session_id_idx
 on recordings (call_session_id);""")
 
+add_to_schema("""\
+create index recordings_start_timestamp_idx
+on recordings (start_timestamp);""")
+
 upsert_recordings = generate_upsert_sql('recordings',
                                         Recording_fields,
                                         ('recording_id',))

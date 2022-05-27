@@ -5,17 +5,13 @@ This is a separate process, and should not be included in webapp
 To run: python -m app.scheduler
 """
 
-import rq
-
-
 if __name__ == "__main__":
 
-    from datetime import datetime
     from functools import wraps
     import schedule
     import time
 
-    from .fetch import fetch_call_data, fetch_customer_data, fetch_contacts
+    from .fetch import fetch_call_data, fetch_customer_data, fetch_contacts, fetch_recordings
     from .jobs import enqueue, redis_wait_ready
     from . import create_app
 
@@ -36,6 +32,7 @@ if __name__ == "__main__":
 
     rq_enqueue_with_app_context(fetch_call_data)
     schedule.every(2).minutes.do(rq_enqueue_with_app_context(fetch_call_data))
+    schedule.every(2).minutes.do(rq_enqueue_with_app_context(fetch_recordings))
     schedule.every(7).hours.do(rq_enqueue_with_app_context(fetch_customer_data))
     schedule.every(7).hours.do(rq_enqueue_with_app_context(fetch_contacts))
 

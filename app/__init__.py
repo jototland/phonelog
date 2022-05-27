@@ -39,7 +39,7 @@ def envconfig(app, key, envvar=None, required=False, nonempty=False):
     if required and key not in app.config:
         app.logger.warn(f'missing required value for {key}')
         sys.exit(1)
-    if nonempty and not app.config[key]:
+    if nonempty and key in app.config and not app.config[key]:
         app.logger.warn(f'missing nonempty value for {key}')
         sys.exit(1)
 
@@ -62,6 +62,7 @@ def create_app(test_config=None, minimal_app=False):
         REMEMBER_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SECURE=not app.debug,
         REMEMBER_COOKIE_SECURE=not app.debug,
+        ZISSON_SFTP_HOST='ftp.zisson.com',
         ZISSON_API_HOST='api.zisson.com',
         ZISSON_STATUS_URL='https://zisson-kva.statuspage.io/',
         MIN_PASSWORD_SCORE=3,
@@ -77,8 +78,11 @@ def create_app(test_config=None, minimal_app=False):
     envconfig(app, 'INTERNAL_URL')
     envconfig(app, 'ZISSON_API_HOST', required=True, nonempty=True)
     envconfig(app, 'ZISSON_STATUS_URL', required=True, nonempty=True)
-    envconfig(app, 'ZISSON_API_USERNAME', required=True, nonempty=True)
-    envconfig(app, 'ZISSON_API_PASSWORD', required=True, nonempty=True)
+    envconfig(app, 'ZISSON_API_USERNAME', required=False, nonempty=True)
+    envconfig(app, 'ZISSON_API_PASSWORD', required=False, nonempty=True)
+    envconfig(app, 'ZISSON_SFTP_USERNAME', required=False, nonempty=True)
+    envconfig(app, 'ZISSON_SFTP_PASSWORD', required=False, nonempty=True)
+    envconfig(app, 'ZISSON_SFTP_HOST_KEY', required=False, nonempty=True)
     envconfig(app, 'REDIS_HOST')
     envconfig(app, 'REDIS_PORT')
     envconfig(app, 'REDIS_DB')
