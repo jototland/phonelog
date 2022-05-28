@@ -36,7 +36,7 @@ from .model.utils import generate_create_table_sql, generate_namedtuple, generat
 
 
 TOKEN_SIZE=32 # number of bytes in random user identifier stored in cookies
-USER_ROLES=['admin', 'agent', 'zisson_push']
+USER_ROLES=['admin', 'agent', 'zisson_push', 'recording']
 MAX_LOGIN_ATTEMPTS=20
 
 User_fields = (

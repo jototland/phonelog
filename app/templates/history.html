@@ -1,5 +1,9 @@
 {% extends "base.html" %}
+
+
 {% from "macros.html" import render_call_session, local_datetime, iso_datetime, iso_date %}
+
+
 {% block content %}
   <div class="my-5">
     <h1>
@@ -16,6 +20,9 @@
            max="{{ highest_date }}">
   </div>
 
-  {% include "call_sessions.html" %}
+  {% for call_session in call_sessions %}
+    {{ render_call_session(call_session, view_recordings=('recording' in current_user.roles)) }}
+  {% endfor %}
+
   <script src="/static/history.js"></script>
 {% endblock content %}

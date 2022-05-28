@@ -14,6 +14,7 @@
 {% macro desktop_computer() %}&#128421;{% endmacro %}
 {% macro runner() %}&#127939;{% endmacro %}
 {% macro office_building() %}&#127970;{% endmacro %}
+{% macro speaker() %}&#128266;{% endmacro %}
 
 
 {% macro fmtdictlist(list) %}
@@ -141,7 +142,7 @@
 {% endmacro %}
 
 
-{% macro render_call_session(call_session) %}
+{% macro render_call_session(call_session, view_recordings=False) %}
   <div class="call-session
   {% if 'error' in call_session and call_session.error == 'invalidnumber' %}
     blocked-invalid-number
@@ -164,7 +165,7 @@
     <div class="collapse"
          id="details-{{ call_session.id }}">
       <div class="card card-body my-2">
-        {{ render_call_session_details(call_session.details) }}
+        {{ render_call_session_details(call_session.details, view_recordings=view_recordings) }}
       </div>
     </div>
   </div>
@@ -294,7 +295,7 @@
 {% endmacro %}
 
 
-{% macro render_call_session_details(details) %}
+{% macro render_call_session_details(details, view_recordings=False) %}
   <table class="table table-responsive-lg table-bordered table-small table-hover m-0 p-0">
     <colgroup>
       <col style="width: 5em;">
@@ -312,7 +313,7 @@
             {% endif %}
           </td>
           {% for cell in row.cells %}
-            {{ render_call_session_details_event(cell) }}
+            {{ render_call_session_details_event(cell, view_recordings) }}
           {% endfor %}
         </tr>
       {% endfor %}
@@ -321,7 +322,7 @@
 {% endmacro %}
 
 
-{% macro render_call_session_details_event(event) %}
+{% macro render_call_session_details_event(event, view_recordings=False) %}
   {% if not event %}
     <td></td>
   {% else %}
@@ -341,43 +342,56 @@
     {% endif %}
 
     <td class="{{bgcolor}} {{border}}">
-      {% if event.category.name == "CALL" %}
-        {{ telephone_receiver() }}
-        {% if event.incoming %}
-          {{ render_external_phone(event.from_no, event.from_descr) }}
-        {% else %}
-          {{ render_pbx_phone(event.from_no, event.from_descr) }}
+      <div class="d-flex flex-row">
+        <div class="flex-fill">
+          {% if event.category.name == "CALL" %}
+            {{ telephone_receiver() }}
+            {% if event.incoming %}
+              {{ render_external_phone(event.from_no, event.from_descr) }}
+            {% else %}
+              {{ render_pbx_phone(event.from_no, event.from_descr) }}
+            {% endif %}
+            <br>{{ big_right_arrow() }}
+            {% if event.to_service or event.incoming %}
+              {{ render_service_number(event.to_no, event.to_descr) }}
+            {% elif event.to_agent %}
+              {{ render_agent_phone(event.to_no, event.to_descr) }}
+            {% else %}
+              {{ render_external_phone(event.to_no, event.to_descr) }}
+            {% endif %}
+
+          {% elif event.category.name == "WAIT" %}
+            {{ hourglass_with_flowing_sand() }}
+
+          {% elif event.category.name == "ANSWER" %}
+
+            {% if event.incoming %}
+              {{ gear() }} (answered automatically)
+            {% else %}
+              {{ speaking_head() }} answered
+            {% endif %}
+          {% elif event.category.name == "TALK" %}
+            {{ speech_balloon() }}
+
+          {% elif event.category.name == "HANGUP" %}
+            {% if event.error == '' %}
+              {{ black_telephone() }} ended normally
+            {% else %}
+              {{ cross_mark() }} Failed: {{ event.error }}
+            {% endif %}
+          {% endif %}
+        </div>
+        {% if view_recordings and event.recording_id != None %}
+          {% if event.category.name == "CALL" %}
+            <div class="justify-content-end">
+            <!-- <div class="justify-content-end align-item-center p-2 border rounded-top border-primary"> -->
+              <a class="btn" href="{{ url_for('main.play_recording', recording_id=event.recording_id) }}">
+                [{{ speaker() }}]
+              </a>
+            </div>
+          {% endif %}
         {% endif %}
-        <br>{{ big_right_arrow() }}
-        {% if event.to_service or event.incoming %}
-          {{ render_service_number(event.to_no, event.to_descr) }}
-        {% elif event.to_agent %}
-          {{ render_agent_phone(event.to_no, event.to_descr) }}
-        {% else %}
-          {{ render_external_phone(event.to_no, event.to_descr) }}
-        {% endif %}
-
-      {% elif event.category.name == "WAIT" %}
-        {{ hourglass_with_flowing_sand() }}
-
-      {% elif event.category.name == "ANSWER" %}
-
-        {% if event.incoming %}
-          {{ gear() }} (answered automatically)
-        {% else %}
-          {{ speaking_head() }} answered
-        {% endif %}
-
-      {% elif event.category.name == "TALK" %}
-        {{ speech_balloon() }}
-
-      {% elif event.category.name == "HANGUP" %}
-        {% if event.error == '' %}
-          {{ black_telephone() }} ended normally
-        {% else %}
-          {{ cross_mark() }} Failed: {{ event.error }}
-        {% endif %}
-      {% endif %}
+      </div>
     </td>
   {% endif %}
 {% endmacro %}

@@ -20,10 +20,6 @@ def iso_datetime_to_epoch(iso_datetime: str) -> float:
     return parse_iso_date(iso_datetime).timestamp()
 
 
-def epoch_to_iso_datetime(epoch: float, tz=timezone.utc) -> str:
-    return datetime.utcfromtimestamp(epoch, tz).isoformat().replace('+00:00', 'Z')
-
-
 def str_to_bool(text: str) -> bool:
     if text.lower().strip() == 'true':
         return True

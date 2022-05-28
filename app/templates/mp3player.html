@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% from "macros.html" import local_datetime %}
+
+{% block title %}
+Audio recording player
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-5">
+
+  Recording start: {{ local_datetime(recording_start) }}<br>
+  Recording end: {{ local_datetime(recording_end) }}<br>
+  <audio controls autoplay>
+    <source src="{{ url_for('main.recording', recording_id=recording_id) }}" type="audio/mpeg">
+  </audio>
+
+</div>
+{% endblock content %}

@@ -110,6 +110,7 @@ class Event:
     from_descr: str|None = None
     to_descr: str|None = None
     column: int|None = None
+    recording_id: str|None = None
 
 
 @dataclass
@@ -154,7 +155,7 @@ def get_call_session_data(call_session_id):
                 agent_info = agent_description(call_channels[i])
                 answered = True
                 break
-        else: # for:else
+        else:
             if call_channels[0]['call_state'] == 't':
                 no_answer_time = call_channels[0]['hangup_timestamp'] - start_time
 
@@ -204,6 +205,8 @@ def get_call_session_data_details(call_session_id):
         kwargs['from_no'] = call_channel['a_number']
         kwargs['to_no'] = call_channel['b_number']
         kwargs['call_channel_no'] = call_channel_no
+        if call_channel['recording_id'] != None:
+            kwargs['recording_id'] = uuid_expand(call_channel['recording_id'])
 
         events.append(Event(
             timestamp = call_channel['call_timestamp'],
@@ -321,7 +324,8 @@ select
     internal_phones.location_description location_description,
     service_numbers.service_number_description service_number_description,
     from_service_numbers.service_number_description
-        from_service_number_description
+        from_service_number_description,
+    recordings.recording_id
 from call_channels
 left outer join agents
     on agents.agent_id = call_channels.login_id
@@ -331,7 +335,11 @@ left outer join service_numbers service_numbers
     on service_numbers.service_number_id = call_channels.service_number_id
 left outer join service_numbers from_service_numbers
     on from_service_numbers.service_number = call_channels.a_number
-where call_session_id = ?
+left outer join recordings
+    on recordings.call_session_id = call_channels.call_session_id
+    and recordings.call_channel_id = call_channels.call_channel_id
+    and recordings.completed
+where call_channels.call_session_id = ?
 order by call_timestamp
 """
 

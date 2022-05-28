@@ -1,9 +1,8 @@
+import os
+from flask import current_app
+
 from ..db import add_to_schema
-from .utils import (
-    generate_create_table_sql,
-    generate_namedtuple,
-    generate_upsert_sql,
-)
+from .utils import generate_create_table_sql, generate_namedtuple, generate_upsert_sql
 
 
 CallSession_fields = (
@@ -92,3 +91,12 @@ on recordings (start_timestamp);""")
 upsert_recordings = generate_upsert_sql('recordings',
                                         Recording_fields,
                                         ('recording_id',))
+
+
+def recording_local_file(recording_id):
+    recording_file_storage = os.path.join(current_app.instance_path, 'recordings')
+    return os.path.join(
+        recording_file_storage,
+        recording_id[0:2],
+        recording_id[0:4],
+        recording_id)

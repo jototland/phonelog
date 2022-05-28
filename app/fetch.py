@@ -16,6 +16,7 @@ from .model.call_data import (
     upsert_call_channels,
     upsert_call_sessions,
     upsert_recordings,
+    recording_local_file
 )
 from .model.contacts import upsert_contacts
 from .model.customer_data import (
@@ -106,14 +107,6 @@ def fetch_customer_data():
 
 
 MAX_RECORDING_AGE = 60 * 60 * 24 * 7 # 1 week, in seconds
-
-def recording_local_file(recording_id):
-    recording_file_storage = os.path.join(current_app.instance_path, 'recordings')
-    return os.path.join(
-        recording_file_storage,
-        recording_id[0:2],
-        recording_id[0:4],
-        recording_id)
 
 def fetch_recordings():
     if 'ZISSON_SFTP_PASSWORD' not in current_app.config:
