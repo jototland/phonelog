@@ -36,7 +36,7 @@ from .model.utils import generate_create_table_sql, generate_namedtuple, generat
 
 
 TOKEN_SIZE=32 # number of bytes in random user identifier stored in cookies
-USER_ROLES=['admin', 'agent', 'zisson_push', 'recording']
+USER_ROLES=['admin', 'agent', 'recording', 'workstation', 'zisson_push']
 MAX_LOGIN_ATTEMPTS=20
 
 User_fields = (
@@ -180,8 +180,8 @@ def api_require_role(*roles):
             if current_user.is_authenticated:
                 if current_user.has_authorization(roles):
                     return f(*args, *kwargs)
-                return "forbidden", 403
-            return "unauthorized", 401, {'WWW-Authenticate': 'Basic'}
+                return "forbidden\n", 403
+            return "unauthorized\n", 401, {'WWW-Authenticate': 'Basic'}
         return decorated
     return require_role_inner
 

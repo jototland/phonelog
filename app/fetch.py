@@ -29,24 +29,7 @@ from .parse_xml import parse_call_data
 from .parse_xml import parse_contacts
 from .parse_xml import parse_customer_data
 from .utils import uuid_expand
-
-
-def zisson_api_get(path, params=None):
-    if 'ZISSON_API_PASSWORD' not in current_app.config:
-        return
-
-    hostname = current_app.config['ZISSON_API_HOST']
-    username = current_app.config['ZISSON_API_USERNAME']
-    password = current_app.config['ZISSON_API_PASSWORD']
-    try:
-        response = requests.get(f'https://{hostname}/api/simple/{path}',
-                                params=params,
-                                auth=(username, password))
-        response.raise_for_status()
-        return response.content
-    except requests.RequestException as err:
-        current_app.logger.warn(str(err))
-        return None
+from .zisson_api import zisson_api_get
 
 
 def fetch_call_data():
@@ -153,7 +136,7 @@ def fetch_recordings():
                 current_app.logger.info(f'Downloading recording {recording_id}')
                 sftp.get(remote_file, local_file, preserve_mtime=True)
                 os.chmod(local_file, 0o600)
-                #sftp.remove(remote_file) # FIXME: activate later
+                sftp.remove(remote_file)
             except SSHException:
                 try:
                     os.remove(local_file)
