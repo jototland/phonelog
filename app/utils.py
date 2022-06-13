@@ -8,6 +8,13 @@ from uuid import UUID
 from dateutil.parser import parse as parse_iso_date
 
 
+def get_conversion(converter, value, fallback=None):
+    try:
+        return converter(value)
+    except:
+        return fallback
+
+
 def uuid_compact(uuid_string: str) -> str:
     return b85encode(UUID(uuid_string).bytes).decode(encoding='ascii')
 

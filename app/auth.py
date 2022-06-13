@@ -158,17 +158,17 @@ def login_require_role(*roles, require_fresh=False):
     def require_role_inner(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            if current_user.is_authenticated:
-                if not require_fresh or login_fresh():
-                    if current_user.has_authorization(roles):
-                        return f(*args, **kwargs)
-                    return abort(403, f"""
-                                {current_user.username}: You must be logged in with one of the
-                                 following rights to do this: {list(roles)}, but only
-                                 have {current_user.roles}.
-                                 """)
+            if not current_user.is_authenticated:
+                return login_manager.unauthorized()
+            if require_fresh and not login_fresh():
                 return login_manager.needs_refresh()
-            return login_manager.unauthorized()
+            if not current_user.has_authorization(roles):
+                return abort(403, f"""
+                            {current_user.username}: You must be logged in with one of the
+                            following rights to do this: {list(roles)}, but only
+                            have {current_user.roles}.
+                """)
+            return f(*args, **kwargs)
         return decorated
     return require_role_inner
 
@@ -177,11 +177,11 @@ def api_require_role(*roles):
     def require_role_inner(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            if current_user.is_authenticated:
-                if current_user.has_authorization(roles):
-                    return f(*args, *kwargs)
+            if not current_user.is_authenticated:
                 return "forbidden\n", 403
-            return "unauthorized\n", 401, {'WWW-Authenticate': 'Basic'}
+            if not current_user.has_authorization(roles):
+                return "unauthorized\n", 401, {'WWW-Authenticate': 'Basic'}
+            return f(*args, **kwargs)
         return decorated
     return require_role_inner
 

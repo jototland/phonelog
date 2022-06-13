@@ -37,26 +37,28 @@ def dial(from_number, to_number):
     current_app.logger.info(f"======================================")
     current_app.logger.info(f"Dial from {from_number} to {to_number}")
     current_app.logger.info(f"======================================")
-    response = zisson_api_get('Dial',
-                   params = {
-                       'from': from_number,
-                       'to': to_number
-                   })
-    if response != "1":
+    response_content = zisson_api_get('Dial',
+                                      params = {
+                                          'from': from_number,
+                                          'to': to_number
+                                      })
+    current_app.logger.info(f"response content = {response_content}")
+    if response_content != b'1':
         raise RuntimeError(f"Failed to dial from {from_number} to {to_number}")
 
 
 LogonEvent = namedtuple('LogonEvent', ['agent_id', 'location_id', 'logon', 'timestamp'])
 
+
 def get_agent_location_map():
     """returns a dict mapping agent_id to location_id"""
-    now = (datetime.utcnow() + timedelta(seconds=5)).isoformat(timespec='seconds')+'Z'
+    now = (datetime.utcnow() + timedelta(hours=24)).isoformat(timespec='seconds')+'Z'
     yesterday = (datetime.utcnow() - timedelta(hours=24)).isoformat(timespec='seconds')+'Z'
     xmldata = zisson_api_get('AgentQueueStatusEvents',
                               params = {
                                   'start_date': yesterday,
                                   'end_date': now,
-                                  'logon_events': 1
+                                  'logon_events': '1',
                               })
     if xmldata == None:
         return {}
@@ -81,7 +83,7 @@ def get_agent_location_map():
     return agent_location
 
 
-def email_to_current_phone(email):
+def email_to_current_phone(email: str, fallback_phone = None) -> int|None:
     try:
         user_id = get_db().execute(
             "select agent_id from agents where agent_email = ?",
@@ -91,8 +93,8 @@ def email_to_current_phone(email):
         phone = get_db().execute(
             "select location_number from internal_phones where location_id = ?",
             (location_id, )).fetchone()[0]
-        return f"+{phone}"
+        return phone
     except (TypeError, KeyError):
-        return None
+        return fallback_phone
 
 

@@ -11,6 +11,7 @@ from .model.call_data import upsert_call_channels, upsert_call_sessions, upsert_
 from .parse_xml import parse_call_data
 from .live_view import push_updates
 from .zisson_api import email_to_current_phone, dial
+from .utils import get_conversion
 
 
 api = Blueprint('api', __name__)
@@ -34,35 +35,25 @@ def receive_zisson_data():
     return "ok\n"
 
 
-@api.route('/api/zisson/dial/<int:from_number>/<int:to_number>')
-def zisson_dial(from_number, to_number):
-    current_app.logger.info(f"======================================")
-    current_app.logger.info(f"testing123 what1={from_number} what2={to_number}")
-    current_app.logger.info(f"======================================")
+@api.route('/api/dial', methods=['POST'])
+@api_require_role('workstation')
+def handle_dial():
+    to_number = get_conversion(int, request.args.get('to_number'))
+    operator_phone = get_conversion(int, request.args.get('operator_phone'))
+    operator_email = request.args.get('operator_email')
+    operator_fallback_number = get_conversion(int, request.args.get('operator_fallback_number'))
+
+    from_number = None
+    if operator_phone is not None:
+        from_number = operator_phone
+    if operator_email is not None:
+        from_number = email_to_current_phone(operator_email)
+    if operator_fallback_number is not None and from_number is None:
+        from_number = operator_fallback_number
+
+    if from_number is None or to_number is None:
+        return "error\n", 400
+
     dial(from_number, to_number)
     return "success\n"
 
-import re
-@api.route('/api/dial/<int:a>/<int:b>')
-@api_require_role('workstation')
-def dial_from_number(a, b):
-    current_app.logger.info(f"======================================")
-    current_app.logger.info(f"Dial from {a} to {b} 2+2={2+2}")
-    current_app.logger.info(f"======================================")
-    if not all([
-        re.match(r'\+\d+$', a),
-        re.match(r'\+\d+$', b),
-    ]):
-        return "wrong number format\n", 400
-    dial(from_number=a, to_number=b)
-    return "ok\n"
-
-
-@api.route('/api/call/from_email/<email>/to/<to_number>')
-@api_require_role('workstation')
-def dial_from_email(email, to_number):
-    from_number = email_to_current_phone(email)
-    if from_number == None:
-        return "not logged in to zisson\n", 400
-    dial(from_number=from_number, to_number=to_number)
-    return "ok\n"
