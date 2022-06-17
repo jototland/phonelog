@@ -20,6 +20,23 @@
            max="{{ highest_date }}">
   </div>
 
+  <div class="modal fade" id="modal_player" tabindex="-1" aria-labelledby="modal_player_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary">
+          <h5 class="modal-title" id="modal_player_label">Audio player</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          ..nothing here..
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% for call_session in call_sessions %}
     {{ render_call_session(call_session, view_recordings=('recording' in current_user.roles)) }}
   {% endfor %}

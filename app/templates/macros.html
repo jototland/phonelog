@@ -384,10 +384,9 @@
         {% if view_recordings and event.recording_id != None %}
           {% if event.category.name == "CALL" %}
             <div class="justify-content-end">
-            <!-- <div class="justify-content-end align-item-center p-2 border rounded-top border-primary"> -->
-              <a class="btn" href="{{ url_for('main.play_recording', recording_id=event.recording_id) }}">
+              <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal_player" data-recording_id="{{ event.recording_id }}">
                 [{{ speaker() }}]
-              </a>
+              </button>
             </div>
           {% endif %}
         {% endif %}

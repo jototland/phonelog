@@ -154,7 +154,7 @@ def play_recording(recording_id):
         'select start_timestamp, stop_timestamp from recordings '
         'where recording_id = ? and completed = 1',
         (uuid_compact(recording_id),)).fetchone()
-    return render_template('mp3player.html',
+    return render_template('modal_player.html',
                            recording_start = recording_start,
                            recording_end = recording_end,
                            recording_id = recording_id)

@@ -155,9 +155,24 @@ document.addEventListener('DOMContentLoaded', () => {
             hide_blocked_calls_unless_checked()
         })
     }
+
+    const modal_player = document.getElementById('modal_player')
+    if (modal_player) {
+        const modal_body = modal_player.querySelector('.modal-body')
+        modal_player.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget
+            const recording_id = button.getAttribute('data-recording_id')
+            modal_body.innerHTML = '<iframe src="/play_recording/' + recording_id + '"></iframe>'
+        })
+        modal_player.addEventListener('hide.bs.modal', (event) => {
+            modal_body.innerHTML = ''
+        })
+    }
 })
 
 document.addEventListener('DOMContentLoaded', () => {
     fix_tooltips()
     fix_all()
 })
+
+
